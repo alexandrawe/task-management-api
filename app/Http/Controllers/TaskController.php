@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Task;
+use App\TaskState;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class TaskController extends Controller
 {
@@ -15,7 +17,7 @@ class TaskController extends Controller
         $tasks = Task::all();
 
         return response()->json([
-            'taks' => $tasks,
+            'tasks' => $tasks,
         ]);
     }
 
@@ -36,7 +38,7 @@ class TaskController extends Controller
         ]);
 
         return response()->json([
-            'task_id' => $task->id,
+            'task' => $task,
             'message' => 'Task was successfully created.'
         ]);
     }
@@ -44,9 +46,19 @@ class TaskController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Task $task)
+    public function show($task_id)
     {
-        //
+        $task = Task::find($task_id);
+
+        if(!$task) {
+            return response()->json([
+                'message' => 'Task not found.'
+            ], 404);
+        }
+
+        return response()->json([
+            'task' => $task
+        ]);
     }
 
     /**
@@ -54,13 +66,18 @@ class TaskController extends Controller
      */
     public function update(Request $request, $task_id)
     {
-        $data = $request->validate([
+        $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'state' => Rule::enum(TaskState::class),
         ]);
+
+        $task = Task::findOrFail($task_id);
+
+        $task->update($validated);
         
         return response()->json([
-            'task_id' => $task_id,
+            'task' => $task,
             'message' => 'Task was successfully updated.'
         ]);
     }
@@ -81,6 +98,7 @@ class TaskController extends Controller
         $task->delete();
 
         return response()->json([
+            'task_id' => $task_id,
             'message' => 'Task was successfully deleted.',
         ]);
     }
