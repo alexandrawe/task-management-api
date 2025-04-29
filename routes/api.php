@@ -1,14 +1,13 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TaskController;
-use Illuminate\Http\Request;
+use App\Http\Middleware\AuthMiddleware;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+Route::post('/login', [AuthController::class, 'login']);
 
-Route::controller(TaskController::class)->group(function () {
+Route::middleware(AuthMiddleware::class)->controller(TaskController::class)->group(function () {
     Route::get('/tasks', 'index');
     Route::get('/tasks/{id}', 'show');
     Route::post('/tasks', 'store');
