@@ -6,6 +6,9 @@ use App\Models\Task;
 use App\TaskState;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Laravel\Sanctum\PersonalAccessToken;
+
+use function Illuminate\Log\log;
 
 class TaskController extends Controller
 {
@@ -31,10 +34,12 @@ class TaskController extends Controller
             'description' => 'nullable|string',
         ]);
 
+        $user = PersonalAccessToken::findToken($request->bearerToken())->tokenable()->first();
+
         $task = Task::create([
             'title' => $validated['title'],
             'description' => $validated['description'] ?? '',
-            'created_by' => 1,
+            'created_by' => $user?->id,
         ]);
 
         return response()->json([
