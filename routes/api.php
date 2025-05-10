@@ -14,6 +14,7 @@ Route::middleware(AuthMiddleware::class)
     ->controller(TaskController::class)
     ->group(function () {
         Route::get('/tasks', 'index');
+        Route::get('/tasks/overdue', 'overdue');
         Route::get('/tasks/{id}', 'show');
         Route::post('/tasks', 'store');
         Route::patch('/tasks/{id}', 'update');

@@ -16,6 +16,8 @@ class TaskController extends Controller
      */
     public function index()
     {
+        // paginate?
+        
         $tasks = Task::all();
 
         return response()->json([
@@ -68,6 +70,21 @@ class TaskController extends Controller
 
         return response()->json([
             'task' => $task
+        ]);
+    }
+
+    /**
+     * Get all overdue tasks
+     */
+    public function overdue()
+    {
+        // paginate?
+        
+        $tasks = Task::wherePast('deadline')
+            ->get();
+
+        return response()->json([
+            'tasks' => $tasks,
         ]);
     }
 
