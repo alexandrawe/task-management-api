@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\TaskUpdated;
 use App\Models\Task;
 use App\TaskState;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Laravel\Sanctum\PersonalAccessToken;
-
-use function Illuminate\Log\log;
 
 class TaskController extends Controller
 {
@@ -32,6 +31,9 @@ class TaskController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'deadline' => 'nullable|date|afterOrEqual:today',
+            'user_id' => 'nullable|exists:users,id',
+            'project_id' => 'nullable|exists:projects,id',
         ]);
 
         $user = PersonalAccessToken::findToken($request->bearerToken())->tokenable()->first();
@@ -39,7 +41,10 @@ class TaskController extends Controller
         $task = Task::create([
             'title' => $validated['title'],
             'description' => $validated['description'] ?? '',
+            'deadline' => $validated['deadline'] ?? null,
+            'user_id' => $validated['user_id'] ?? null,
             'created_by' => $user?->id,
+            'project_id' => $validated['project_id'] ?? null,
         ]);
 
         return response()->json([
@@ -74,7 +79,10 @@ class TaskController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'deadline' => 'nullable|date|afterOrEqual:today',
+            'user_id' => 'nullable|exists:users,id',
             'state' => Rule::enum(TaskState::class),
+            'project_id' => 'nullable|exists:projects,id',
         ]);
 
         $task = Task::findOrFail($task_id);
