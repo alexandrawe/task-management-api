@@ -105,6 +105,8 @@ class TaskController extends Controller
         $task = Task::findOrFail($task_id);
 
         $task->update($validated);
+
+        TaskUpdated::dispatch($task);
         
         return response()->json([
             'task' => $task,
