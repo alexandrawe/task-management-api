@@ -97,6 +97,7 @@ class TaskTest extends TestCase
         $response = $this->withToken($this->token)
             ->patchJson('/api/tasks/' . $task->id, [
                 'title' => 'New title',
+                'description' => 'new description',
                 'state' => TaskState::IN_PROGRESS,
             ]);
 
@@ -105,7 +106,7 @@ class TaskTest extends TestCase
                 'task' => [
                     'id' => $task->id,
                     'title' => 'New title',
-                    'description' => $task->description,
+                    'description' => 'new description',
                     'state' => TaskState::IN_PROGRESS->value,
                     'created_by' => $task->created_by,
                 ],
