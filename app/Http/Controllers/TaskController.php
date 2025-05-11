@@ -32,7 +32,7 @@ class TaskController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'description' => 'required|string',
             'deadline' => 'nullable|date|afterOrEqual:today',
             'user_id' => 'nullable|exists:users,id',
             'project_id' => 'nullable|exists:projects,id',
@@ -95,7 +95,7 @@ class TaskController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'description' => 'required|string',
             'deadline' => 'nullable|date|afterOrEqual:today',
             'user_id' => 'nullable|exists:users,id',
             'state' => Rule::enum(TaskState::class),
