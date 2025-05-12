@@ -5,7 +5,7 @@ namespace Tests\Feature\Models;
 use App\Models\Task;
 use App\Models\User;
 use App\Notifications\TaskOverdue;
-use App\TaskState;
+use App\Enum\TaskState;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;

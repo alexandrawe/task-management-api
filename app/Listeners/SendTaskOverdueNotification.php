@@ -5,7 +5,7 @@ namespace App\Listeners;
 use App\Events\TaskUpdated;
 use App\Models\User;
 use App\Notifications\TaskOverdue;
-use App\TaskState;
+use App\Enum\TaskState;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Notification;
 

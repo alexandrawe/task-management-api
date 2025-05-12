@@ -3,7 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\User;
-use App\TaskState;
+use App\Enum\TaskState;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

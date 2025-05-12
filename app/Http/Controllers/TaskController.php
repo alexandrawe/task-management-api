@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\TaskUpdated;
 use App\Models\Task;
-use App\TaskState;
+use App\Enum\TaskState;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Laravel\Sanctum\PersonalAccessToken;
