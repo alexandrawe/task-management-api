@@ -12,13 +12,11 @@ use Laravel\Sanctum\PersonalAccessToken;
 class TaskController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Get all tasks
      */
     public function index()
-    {
-        // paginate?
-        
-        $tasks = Task::all();
+    {   
+        $tasks = Task::paginate(20);
 
         return response()->json([
             'tasks' => $tasks,
@@ -26,7 +24,7 @@ class TaskController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a new task
      */
     public function store(Request $request)
     {
@@ -56,7 +54,7 @@ class TaskController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Get task with given id
      */
     public function show($task_id)
     {
@@ -77,11 +75,10 @@ class TaskController extends Controller
      * Get all overdue tasks
      */
     public function overdue()
-    {
-        // paginate?
-        
+    {   
         $tasks = Task::wherePast('deadline')
-            ->get();
+            ->whereNot('state', TaskState::DONE)
+            ->paginate(20);
 
         return response()->json([
             'tasks' => $tasks,
@@ -89,13 +86,13 @@ class TaskController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update specific task
      */
     public function update(Request $request, $task_id)
     {
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
+            'title' => 'sometimes|string|max:255',
+            'description' => 'sometimes|string',
             'deadline' => 'nullable|date|afterOrEqual:today',
             'user_id' => 'nullable|exists:users,id',
             'state' => Rule::enum(TaskState::class),
@@ -115,7 +112,7 @@ class TaskController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Delete task
      */
     public function destroy($task_id)
     {

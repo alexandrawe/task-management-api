@@ -4,8 +4,10 @@ namespace Tests\Feature\Models;
 
 use App\Models\Task;
 use App\Models\User;
+use App\Notifications\TaskOverdue;
 use App\TaskState;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class TaskTest extends TestCase
@@ -131,5 +133,82 @@ class TaskTest extends TestCase
                 'task_id' => $task->id,
                 'message' => 'Task was successfully deleted.',
             ]);
+    }
+
+    /**
+     * Tests that a mail is sent to user when task is updated and deadline is overdue
+     */
+    public function test_overdue_notification_is_sent_when_task_deadline_passed(): void
+    {
+        Notification::fake();
+
+        $userNotficationIsSentTo = User::factory()->create();
+
+        $task = Task::factory()->create([
+            'state' => TaskState::TODO,
+            'created_by' => $this->user->id,
+            'deadline' => now()->yesterday(),
+            'user_id' => $userNotficationIsSentTo->id,
+        ]);
+
+        $this->withToken($this->token)
+            ->patchJson('/api/tasks/' . $task->id, [
+                'state' => TaskState::IN_PROGRESS,
+            ])
+            ->assertStatus(200);
+
+        Notification::assertSentTo(
+            [$userNotficationIsSentTo], TaskOverdue::class
+        );
+    }
+
+    /**
+     * Tests that a mail is sent to user when task is updated and deadline is overdue
+     */
+    public function test_does_not_send_overdue_notification_if_deadline_passed_and_state_done(): void
+    {
+        Notification::fake();
+
+        $userToAssignTaskTo = User::factory()->create();
+
+        $task = Task::factory()->create([
+            'state' => TaskState::TODO,
+            'created_by' => $this->user->id,
+            'deadline' => now()->tomorrow(),
+            'user_id' => $userToAssignTaskTo->id,
+        ]);
+
+        $this->withToken($this->token)
+            ->patchJson('/api/tasks/' . $task->id, [
+                'state' => TaskState::DONE,
+            ])
+            ->assertStatus(200);
+
+        Notification::assertNothingSent();
+    }
+
+    /**
+     * Tests that a mail is sent to user when task is updated and deadline is overdue
+     */
+    public function test_does_not_send_overdue_notification_if_deadline_not_exceeded(): void
+    {
+        Notification::fake();
+
+        $userToAssignTaskTo = User::factory()->create();
+
+        $task = Task::factory()->create([
+            'state' => TaskState::TODO,
+            'created_by' => $this->user->id,
+            'deadline' => now()->tomorrow(),
+            'user_id' => $userToAssignTaskTo->id,
+        ]);
+
+        $this->withToken($this->token)
+            ->patchJson('/api/tasks/' . $task->id, [
+                'state' => TaskState::IN_PROGRESS,
+            ])
+            ->assertStatus(200);
+
+        Notification::assertNothingSent();
     }
 }
