@@ -286,13 +286,11 @@ class TaskTest extends TestCase
     {
         Notification::fake();
 
-        $userNotficationIsSentTo = User::factory()->create();
-
         $task = Task::factory()->create([
             'state' => TaskState::TODO,
             'created_by' => $this->user->id,
             'deadline' => now()->yesterday(),
-            'user_id' => $userNotficationIsSentTo->id,
+            'user_id' => $this->user->id,
         ]);
 
         $this->withToken($this->token)
@@ -302,7 +300,7 @@ class TaskTest extends TestCase
             ->assertStatus(200);
 
         Notification::assertSentTo(
-            [$userNotficationIsSentTo], TaskOverdue::class
+            [$this->user], TaskOverdue::class
         );
     }
 
@@ -313,13 +311,11 @@ class TaskTest extends TestCase
     {
         Notification::fake();
 
-        $userToAssignTaskTo = User::factory()->create();
-
         $task = Task::factory()->create([
             'state' => TaskState::TODO,
             'created_by' => $this->user->id,
             'deadline' => now()->tomorrow(),
-            'user_id' => $userToAssignTaskTo->id,
+            'user_id' => $this->user->id,
         ]);
 
         $this->withToken($this->token)
@@ -338,13 +334,11 @@ class TaskTest extends TestCase
     {
         Notification::fake();
 
-        $userToAssignTaskTo = User::factory()->create();
-
         $task = Task::factory()->create([
             'state' => TaskState::TODO,
             'created_by' => $this->user->id,
             'deadline' => now()->tomorrow(),
-            'user_id' => $userToAssignTaskTo->id,
+            'user_id' => $this->user->id,
         ]);
 
         $this->withToken($this->token)
