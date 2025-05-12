@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Task;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -14,15 +15,19 @@ class UserTasksController extends Controller
     {
         try {
             $user = User::where('id', $user_id)
-                ->with('tasks')->firstOrFail();
+                ->firstOrFail();
         } catch (ModelNotFoundException $e) {
             return response()->json([
                 'message' => 'User not found.'
             ], 404);
         }
 
+        $tasks = Task::where('user_id', $user_id)
+            ->paginate(20);
+
         return response()->json([
             'user' => $user,
+            'tasks' => $tasks,
         ]);
     }
 }
