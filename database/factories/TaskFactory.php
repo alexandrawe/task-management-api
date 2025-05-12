@@ -22,7 +22,7 @@ class TaskFactory extends Factory
         return [
             'title' => fake()->sentence(8),
             'description' => fake()->paragraph(),
-            'deadline' => Carbon::parse(fake()->dateTimeBetween('-1 year', '+1 year'))->toIso8601String(),
+            'deadline' => Carbon::parse(fake()->dateTimeBetween('-1 year', '+1 year'))->format('Y-m-d H:i:s'),
             'user_id' => User::first()->id,
             'state' => fake()->randomElement(TaskState::class),
             'created_by' => User::first()->id,

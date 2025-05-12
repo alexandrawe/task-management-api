@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Notifications\TaskOverdue;
 use App\Enum\TaskState;
 use App\Models\Project;
+use App\Models\Role;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
@@ -22,7 +23,13 @@ class TaskTest extends TestCase
     {
         parent::setUp();
 
-        $this->user = User::factory()->create();
+        $userRole = Role::factory()->create([
+            'name' => 'user',
+        ]);
+
+        $this->user = User::factory()->create([
+            'role_id' => $userRole->id,
+        ]);
         $this->token = $this->user->createToken('api-token')->plainTextToken;
     }
 

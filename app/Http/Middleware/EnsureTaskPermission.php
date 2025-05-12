@@ -18,7 +18,14 @@ class EnsureTaskPermission
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $user = PersonalAccessToken::findToken($request->bearerToken())->tokenable()->first();
+        $user = PersonalAccessToken::findToken($request->bearerToken())
+            ->tokenable()
+            ->with('role')
+            ->first();
+
+        if($user->role->name === 'admin') {
+            return $next($request);
+        }
 
         $taskId = $request->id;
 

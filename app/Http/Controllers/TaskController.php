@@ -14,9 +14,17 @@ class TaskController extends Controller
     /**
      * Get all tasks
      */
-    public function index()
-    {   
-        $tasks = Task::paginate(20);
+    public function index(Request $request)
+    {
+        $user = PersonalAccessToken::findToken($request->bearerToken())
+            ->tokenable()
+            ->with('role')
+            ->first();
+
+        $tasks = Task::when($user->role->name === 'user', function ($query) use ($user) {
+                return $query->where('user_id', $user->id);
+            })
+            ->paginate(20);
 
         return response()->json([
             'tasks' => $tasks,
@@ -74,9 +82,17 @@ class TaskController extends Controller
     /**
      * Get all overdue tasks
      */
-    public function overdue()
-    {   
-        $tasks = Task::wherePast('deadline')
+    public function overdue(Request $request)
+    {
+        $user = PersonalAccessToken::findToken($request->bearerToken())
+            ->tokenable()
+            ->with('role')
+            ->first();
+
+        $tasks = Task::when($user->role->name === 'user', function ($query) use ($user) {
+                return $query->where('user_id', $user->id);
+            })
+            ->wherePast('deadline')
             ->whereNot('state', TaskState::DONE)
             ->paginate(20);
 
