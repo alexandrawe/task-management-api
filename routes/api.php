@@ -21,7 +21,7 @@ Route::middleware(AuthMiddleware::class)
         Route::delete('/tasks/{id}', 'destroy');
 });
 
-Route::get('/user/{id}/tasks', UserTasksController::class)
+Route::get('/users/{id}/tasks', UserTasksController::class)
     ->whereNumber('id')
     ->middleware(AuthMiddleware::class);
 
