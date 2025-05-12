@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\User;
 use App\Enum\TaskState;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -21,6 +22,8 @@ class TaskFactory extends Factory
         return [
             'title' => fake()->sentence(8),
             'description' => fake()->paragraph(),
+            'deadline' => Carbon::parse(fake()->dateTimeBetween('-1 year', '+1 year'))->toIso8601String(),
+            'user_id' => User::first()->id,
             'state' => fake()->randomElement(TaskState::class),
             'created_by' => User::first()->id,
         ];

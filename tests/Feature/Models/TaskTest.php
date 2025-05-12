@@ -6,6 +6,7 @@ use App\Models\Task;
 use App\Models\User;
 use App\Notifications\TaskOverdue;
 use App\Enum\TaskState;
+use App\Models\Project;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
@@ -30,13 +31,86 @@ class TaskTest extends TestCase
      */
     public function test_get_all_tasks(): void
     {
-        $tasks = Task::factory()->count(6)->create();
+        Task::factory()->count(6)->create();
 
         $this->withToken($this->token)
             ->getJson('/api/tasks')
             ->assertStatus(200)
             ->assertJsonStructure([
-                'tasks' => [],
+                'tasks' => [
+                    'current_page',
+                    'data' => [
+                        [
+                            'id',
+                            'title',
+                            'description',
+                            'deadline',
+                            'user_id',
+                            'state',
+                            'created_by',
+                            'project_id',
+                            'created_at',
+                            'updated_at',
+                        ]
+                    ],
+                    'first_page_url',
+                    'from',
+                    'last_page',
+                    'last_page_url',
+                    'links',
+                    'next_page_url',
+                    'path',
+                    'per_page',
+                    'prev_page_url',
+                    'to',
+                    'total',
+                ],
+            ]);
+    }
+
+    /**
+     * Tests getting overdue tasks.
+     */
+    public function test_get_all_open_overdue_tasks(): void
+    {
+
+        Task::factory()->count(10)->create([
+            'deadline' => now()->subDays(1),
+            'state' => TaskState::TODO,
+        ]);
+
+        $this->withToken($this->token)
+            ->getJson('/api/tasks/overdue')
+            ->assertJsonPath('tasks.total', 10)
+            ->assertJsonStructure([
+                'tasks' => [
+                    'current_page',
+                    'data' => [
+                        [
+                            'id',
+                            'title',
+                            'description',
+                            'deadline',
+                            'user_id',
+                            'state',
+                            'created_by',
+                            'project_id',
+                            'created_at',
+                            'updated_at',
+                        ]
+                    ],
+                    'first_page_url',
+                    'from',
+                    'last_page',
+                    'last_page_url',
+                    'links',
+                    'next_page_url',
+                    'path',
+                    'per_page',
+                    'prev_page_url',
+                    'to',
+                    'total',
+                ],
             ]);
     }
 
@@ -58,8 +132,11 @@ class TaskTest extends TestCase
                     'id' => $task->id,
                     'title' => $task->title,
                     'description' => $task->description,
+                    'deadline' => $task->deadline,
+                    'user_id' => $task->user_id,
                     'state' => TaskState::TODO->value,
                     'created_by' => $this->user->id,
+                    'project_id' => $task->project_id,
                     'created_at' => $task->created_at->toISOString(),
                     'updated_at' => $task->updated_at->toISOString(),
                 ],
@@ -109,8 +186,11 @@ class TaskTest extends TestCase
                     'id' => $task->id,
                     'title' => 'New title',
                     'description' => 'new description',
+                    'deadline' => $task->deadline,
+                    'user_id' => $task->user_id,
                     'state' => TaskState::IN_PROGRESS->value,
                     'created_by' => $task->created_by,
+                    'project_id' => $task->project_id,
                 ],
                 'message' => 'Task was successfully updated.',
             ]);
@@ -133,6 +213,70 @@ class TaskTest extends TestCase
                 'task_id' => $task->id,
                 'message' => 'Task was successfully deleted.',
             ]);
+    }
+
+    /**
+     * Tests relationship between project and tasks
+     */
+    public function test_project_has_many_tasks(): void
+    {
+        $project = Project::factory()->create();
+
+        $tasks = Task::factory()
+            ->count(8)
+            ->create([
+                'project_id' => $project->id,
+            ]);
+
+        $this->assertEquals($project->tasks()->count(), 8);
+        $this->assertTrue($project->tasks()->get()->contains($tasks->first()));
+    }
+
+        /**
+     * Tests relationship between task and a project
+     */
+    public function test_task_belongs_to_a_project(): void
+    {
+        $project = Project::factory()->create();
+
+        $task = Task::factory()->create([
+            'project_id' => $project->id,
+        ]);
+
+        $this->assertEquals($task->project()->count(), 1);
+        $this->assertInstanceOf(Project::class, $task->project);
+    }
+
+    /**
+     * Tests relationship between user and tasks
+     */
+    public function test_user_has_many_tasks(): void
+    {
+        $user = User::factory()->create();
+
+        $tasks = Task::factory()
+            ->count(10)
+            ->create([
+                'user_id' => $user->id
+            ]);
+
+        $this->assertEquals($user->tasks()->count(), 10);
+        $this->assertTrue($user->tasks()->get()->contains($tasks->first()));
+    }
+
+    /**
+     * Tests relationship between a task and a user
+     */
+    public function test_task_belongs_to_a_user(): void
+    {
+        $user = User::factory()->create();
+
+        $task = Task::factory()->create([
+            'user_id' => $user->id,
+        ]);
+
+        $this->assertEquals($task->user()->count(), 1);
+        $this->assertInstanceOf(User::class, $task->user);
     }
 
     /**
