@@ -26,6 +26,6 @@ Route::get('/users/{id}/tasks', UserTasksController::class)
     ->whereNumber('id')
     ->middleware(AuthMiddleware::class);
 
-Route::get('/project/{id}/tasks', ProjectTasksController::class)
+Route::get('/projects/{id}/tasks', ProjectTasksController::class)
     ->whereNumber('id')
     ->middleware(AuthMiddleware::class);

@@ -356,4 +356,150 @@ class TaskTest extends TestCase
 
         Notification::assertNothingSent();
     }
+
+    /**
+     * Tests getting a users tasks
+     */
+    public function test_get_users_tasks(): void
+    {
+        $user = User::factory()->create();
+
+        $userToken = $user->createToken('api-token')->plainTextToken;
+
+        $tasks = Task::factory(5)->create([
+            'user_id' => $user->id,
+        ]);
+
+        $this->withToken($userToken)
+            ->getJson('/api/users/' . $user->id . '/tasks')
+            ->assertStatus(200)
+            ->assertJsonStructure([
+                'user' => [
+                    'id',
+                    'name',
+                    'email',
+                    'email_verified_at',
+                    'role_id',
+                    'created_at',
+                    'updated_at'
+                ],
+                'tasks' => [
+                    'current_page',
+                    'data' => [
+                        [
+                            'id',
+                            'title',
+                            'description',
+                            'deadline',
+                            'user_id',
+                            'state',
+                            'created_by',
+                            'project_id',
+                            'created_at',
+                            'updated_at',
+                        ]
+                    ],
+                    'first_page_url',
+                    'from',
+                    'last_page',
+                    'last_page_url',
+                    'links',
+                    'next_page_url',
+                    'path',
+                    'per_page',
+                    'prev_page_url',
+                    'to',
+                    'total',
+                ],
+            ])
+            ->assertJsonCount(5, 'tasks.data');
+    }
+
+    /**
+     * Tests getting a projects tasks
+     */
+    public function test_get_project_tasks(): void
+    {
+        $project = Project::factory()->create();
+
+        $tasks = Task::factory(12)->create([
+            'user_id' => $this->user->id,
+            'project_id' => $project->id,
+        ]);
+
+        $this->withToken($this->token)
+            ->getJson('/api/projects/' . $project->id . '/tasks')
+            ->assertStatus(200)
+            ->assertJsonStructure([
+                'project' => [
+                    'id',
+                    'name',
+                    'created_at',
+                    'updated_at'
+                ],
+                'tasks' => [
+                    'current_page',
+                    'data' => [
+                        [
+                            'id',
+                            'title',
+                            'description',
+                            'deadline',
+                            'user_id',
+                            'state',
+                            'created_by',
+                            'project_id',
+                            'created_at',
+                            'updated_at',
+                        ]
+                    ],
+                    'first_page_url',
+                    'from',
+                    'last_page',
+                    'last_page_url',
+                    'links',
+                    'next_page_url',
+                    'path',
+                    'per_page',
+                    'prev_page_url',
+                    'to',
+                    'total',
+                ],
+            ]);
+    }
+
+    /**
+     * Tests that admin can see all tasks
+     */
+    public function test_admin_can_update_foreign_tasks(): void
+    {
+        $adminRole = Role::factory()->create([
+            'name' => 'admin',
+        ]);
+
+        $admin = User::factory()->create([
+            'role_id' => $adminRole->id,
+        ]);
+
+        $user = User::factory()->create();
+
+        $adminToken = $admin->createToken('api-token')->plainTextToken;
+
+        $task = Task::factory()->create([
+            'state' => TaskState::TODO,
+            'user_id' => $user->id,
+        ]);
+
+        $response = $this->withToken($adminToken)
+            ->patchJson('/api/tasks/' . $task->id, [
+                'state' => TaskState::IN_PROGRESS,
+            ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'task' => [],
+                'message' => 'Task was successfully updated.',
+            ])
+            ->assertJsonFragment(['state' => TaskState::IN_PROGRESS]);
+    }
 }
